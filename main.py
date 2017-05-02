@@ -81,11 +81,11 @@ def command_click_inline(call):
     u = User(call.from_user.id, call.from_user.username, call.from_user.first_name, 1, "")
     if(call.data == "A"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso A")
-        u.update_user("course", "DI-A", call.from_user.id)
+        u.update_user("course", "A", call.from_user.id)
         tocourse=False;
     elif (call.data == "B"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso B")
-        u.update_user("course", "DI-B", call.from_user.id)
+        u.update_user("course", "B", call.from_user.id)
         tocourse=False
     elif (call.data == "E"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Informazione e Conoscenza")
@@ -138,8 +138,8 @@ def command_click_inline(call):
         # based on the previously acquired year, we can show pertinent courses
         if (u.getYear() == 1):
             # Just show 'A' and 'B' courses
-            abtn = types.InlineKeyboardButton('A', callback_data="DI-A")
-            bbtn = types.InlineKeyboardButton('B', callback_data="DI-B")
+            abtn = types.InlineKeyboardButton('A', callback_data="A")
+            bbtn = types.InlineKeyboardButton('B', callback_data="B")
             m.row(abtn, bbtn)
         elif(u.getYear() == 3):
             # Just show remaining 3 courses
