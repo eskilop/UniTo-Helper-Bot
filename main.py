@@ -136,7 +136,7 @@ def command_click_inline(call):
         m = types.InlineKeyboardMarkup()
         
         # based on the previously acquired year, we can show pertinent courses
-        if (u.getYear() == 1):
+        if (u.getYear() == 1 or u.getYear() == 2):
             # Just show 'A' and 'B' courses
             abtn = types.InlineKeyboardButton('A', callback_data="A")
             bbtn = types.InlineKeyboardButton('B', callback_data="B")
@@ -146,6 +146,7 @@ def command_click_inline(call):
             ebtn = types.InlineKeyboardButton('Informazione e Conoscenza', callback_data="E")
             nbtn = types.InlineKeyboardButton('Linguaggi e Sistemi', callback_data="N")
             sbtn = types.InlineKeyboardButton('Reti e Sistemi Informatici', callback_data="S")
+            m.add(ebtn)
             m.add(nbtn)
             m.add(sbtn)
         else:
