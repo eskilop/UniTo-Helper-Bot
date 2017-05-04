@@ -329,7 +329,7 @@ def handle_messages(message):
             bot.send_message(message.chat.id, "<b>Fatto!</b> Il tuo bug verrà preso in considerazione appena possibile", parse_mode="html")
             
         if (message.reply_to_message.text == feature_msg):
-            bot.send_message(log_channel, "<b>Tipo: </b>#FEATURE\n"+"<b>Utente:</b> "+message.from_user.first_name+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+message.from_user.username+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
+            bot.send_message(log_channel, "<b>Tipo: </b>#FEATURE\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
             bot.send_message(message.chat.id, "<b>Fatto!</b> La tua richiesta verrà presa in considerazione appena possibile", parse_mode="html")
             
 def handler(signum, frame):
