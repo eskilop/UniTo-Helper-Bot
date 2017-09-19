@@ -39,14 +39,14 @@ def new_member(message):
 
 @bot.message_handler(commands=['start'])
 def send_inline(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
-    if (u.check()):
+    new_user = User(message.chat.id, message.chat.username, message.chat.first_name)
+    if (new_user.exists()):
         bot.reply_to(message, welcome_back.format(message.chat.first_name), parse_mode="markdown")
     else:
-        u.save_user()
+        new_user.save()
         bot.reply_to(message, general_info.format(message.chat.first_name))
         setup(message)
-        
+
 @bot.message_handler(commands=['bug'])
 def send_bug(message):
     markup = types.ForceReply(selective=False)
@@ -59,9 +59,7 @@ def send_feature(message):
 
 @bot.message_handler(commands=['setup'])
 def get_settings(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
     setup(message)
-
 
 def setup(message):
     # start with the year
@@ -78,70 +76,70 @@ def setup(message):
 @bot.callback_query_handler(func=lambda call: call.data)
 def command_click_inline(call):
     tocourse = False;
-    u = User(call.from_user.id, call.from_user.username, call.from_user.first_name, 1, "")
+    user = User(call.from_user.id, call.from_user.username, call.from_user.first_name)
     if(call.data == "A"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso A")
-        u.update_user("course", "A", call.from_user.id)
+        user.set_course("A")
         tocourse=False;
     elif (call.data == "B"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso B")
-        u.update_user("course", "B", call.from_user.id)
+        user.set_course("B")
         tocourse=False
     elif (call.data == "E"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Informazione e Conoscenza")
-        u.update_user("course", "E", call.from_user.id)
+        user.set_course("E")
         tocourse=False
     elif (call.data == "N"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Linguaggi e Sistemi")
-        u.update_user("course", "N", call.from_user.id)
+        user.set_course("N")
         tocourse=False
     elif (call.data == "S"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Reti e Sistemi Informatici")
-        u.update_user("course", "S", call.from_user.id)
+        user.set_course("S")
         tocourse=False
     elif (call.data == "DI-STI"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Sistemi per il Trattamento dell'Icall.from_user.idnformazione")
-        u.update_user("course", "DI-STI", call.from_user.id)
+        user.set_course("DI-STI")
         tocourse=False
     elif (call.data == "DI-RVM"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Realtà Virtuale e Multimedialità")
-        u.update_user("course", "DI-RVM", call.from_user.id)
+        user.set_course("DI-RVM")
         tocourse=False
     elif (call.data == "DI-RSI"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso di Reti e Sistemi Informatici")
-        u.update_user("course", "DI-RSI", call.from_user.id)
+        user.set_course("DI-RSI")
         tocourse=False
     elif(call.data == "year1"):
         bot.answer_callback_query(call.id, text="Ora fai parte del 1° anno")
-        u.update_user("year", 1, call.from_user.id)
+        user.set_year(1)
         tocourse = True
     elif (call.data == "year2"):
         bot.answer_callback_query(call.id, text="Ora fai parte del 2° anno")
-        u.update_user("year", 2, call.from_user.id)
+        user.set_year(2)
         tocourse = True
     elif (call.data == "year3"):
         bot.answer_callback_query(call.id, text="Ora fai parte del 3° anno")
-        u.update_user("year", 3, call.from_user.id)
+        user.set_year(3)
         tocourse = True
     elif (call.data == "year4"):
         bot.answer_callback_query(call.id, text="Ora fai parte del 4° anno")
-        u.update_user("year", 4, call.from_user.id)
+        user.set_year(4)
         tocourse = True
     elif (call.data == "year5"):
         bot.answer_callback_query(call.id, text="Ora fai parte del 5° anno")
-        u.update_user("year", 5, call.from_user.id)
+        user.set_year(5)
         tocourse = True
 
     if(tocourse):
         m = types.InlineKeyboardMarkup()
-        
+
         # based on the previously acquired year, we can show pertinent courses
-        if (u.getYear() == 1 or u.getYear() == 2):
+        if (u.get_year() == 1 or u.get_year() == 2):
             # Just show 'A' and 'B' courses
             abtn = types.InlineKeyboardButton('A', callback_data="A")
             bbtn = types.InlineKeyboardButton('B', callback_data="B")
             m.row(abtn, bbtn)
-        elif(u.getYear() == 3):
+        elif(u.get_year() == 3):
             # Just show remaining 3 courses
             ebtn = types.InlineKeyboardButton('Informazione e Conoscenza', callback_data="E")
             nbtn = types.InlineKeyboardButton('Linguaggi e Sistemi', callback_data="N")
@@ -164,39 +162,39 @@ def command_click_inline(call):
 
 @bot.message_handler(commands=['today'])
 def get_today(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
+    u = User(message.chat.id, message.chat.username, message.chat.first_name)
     dow = datetime.datetime.today().weekday()+1
     if dow > 5:
         bot.send_message(message.chat.id, "Non mi risulta che tu abbia lezione oggi \U0001F600")
     else:
-        bot.send_message(message.chat.id, get_hours(dow, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(dow, u.get_year(), u), parse_mode="html")
 
 @bot.message_handler(commands=['tomorrow'])
 def get_tomorrow(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
+    u = User(message.chat.id, message.chat.username, message.chat.first_name)
     dow = datetime.datetime.today().weekday()+1
     if(dow >= 5):
-        bot.send_message(message.chat.id, get_hours(1, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(1, u.get_year(), u), parse_mode="html")
     else:
-        bot.send_message(message.chat.id, get_hours(dow+1, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(dow+1, u.get_year(), u), parse_mode="html")
 
 @bot.message_handler(commands=['yesterday'])
 def get_yesterday(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
+    u = User(message.chat.id, message.chat.username, message.chat.first_name)
     dow = datetime.datetime.today().weekday()+1
     if (dow == 1):
-        bot.send_message(message.chat.id, get_hours(dow+5-1, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(dow+5-1, u.get_year(), u), parse_mode="html")
     elif(dow == 7):
-        bot.send_message(message.chat.id, get_hours(dow-2, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(dow-2, u.get_year(), u), parse_mode="html")
     else:
-        bot.send_message(message.chat.id, get_hours(dow-1, u.getYear(), u), parse_mode="html")
+        bot.send_message(message.chat.id, get_hours(dow-1, u.get_year(), u), parse_mode="html")
 
 @bot.message_handler(commands=['week'])
 def get_week(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name, 1, "")
+    u = User(message.chat.id, message.chat.username, message.chat.first_name)
     for i in range(1, 6):
-        bot.send_message(message.chat.id, get_hours(i, u.getYear(), u), parse_mode="html")
-    
+        bot.send_message(message.chat.id, get_hours(i, u.get_year(), u), parse_mode="html")
+
 @bot.message_handler(commands=['krem'])
 def keyboard_remove(message):
     markup = types.ReplyKeyboardRemove(selective=False)
@@ -217,14 +215,14 @@ def keyboard_insert(message):
 def get_hours(day_of_week, year, user, flag=None):
     message = ""
 
-    courseLetter = user.getCourseLetter()
+    courseLetter = user.get_course()
 
     index = 0;
     if(year <= 2):
         wpage, headers = urllib.request.urlretrieve(di_first_years.format("L", str(year), str(datetime.datetime.today().year-1))) # pagina del primo/secondo anno
         html = open(wpage).read()
         soup = BeautifulSoup(html, "html.parser")
-        
+
         if (courseLetter == "B"):
             index = 2;
         else:
@@ -238,10 +236,10 @@ def get_hours(day_of_week, year, user, flag=None):
         wpage, headers = urllib.request.urlretrieve(di_masterly.format(str(datetime.datetime.today().year-1))) # pagina del quarto/quinto anno
         html = open(wpage, encoding='ISO-8859-1').read()    # utf-8 won't read this
         soup = BeautifulSoup(html, "html.parser")
-        
-        if (user.getCourseLetter() == "DI-RVM"):
+
+        if (user.get_course() == "DI-RVM"):
             index = 2
-        elif(user.getCourseLetter() == "DI-RSI"):
+        elif(user.get_course() == "DI-RSI"):
             index = 4
 
     # Days
@@ -304,7 +302,7 @@ def get_help(message):
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
-    if(message.text == "#userdump"):  
+    if(message.text == "#userdump"):
         if(str(message.chat.id) == super_user):
             dbh = DBHelper("data_new.db")
             bot.send_message(message.chat.id, "<b>"+str(dbh.count())+"</b>", parse_mode="html")
@@ -322,16 +320,16 @@ def handle_messages(message):
         get_settings(message)
     if (message.text == "Aiuto"):
         get_help(message)
-    
+
     if(message.reply_to_message):
         if (message.reply_to_message.text == bug_msg):
             bot.send_message(log_channel, "<b>Tipo: </b>#BUG\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
             bot.send_message(message.chat.id, "<b>Fatto!</b> Il tuo bug verrà preso in considerazione appena possibile", parse_mode="html")
-            
+
         if (message.reply_to_message.text == feature_msg):
             bot.send_message(log_channel, "<b>Tipo: </b>#FEATURE\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
             bot.send_message(message.chat.id, "<b>Fatto!</b> La tua richiesta verrà presa in considerazione appena possibile", parse_mode="html")
-            
+
 def handler(signum, frame):
     print("Termination code received, terminating...")
     quit()  # That's how we exit

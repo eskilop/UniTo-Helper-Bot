@@ -24,14 +24,14 @@ class DBHelper:
     def __init__(self, dbname):
         self.conn = sqlite3.connect(dbname, check_same_thread = False)
         self.c = self.conn.cursor()
-        
+
     # Inline query the db
     def query(self, query, args):
         self.c.execute(query, args)
         self.conn.commit()
         data = self.c.fetchall()
         return data
-        
+
     # Get count of the rows (number of users)
     def count(self):
         self.c.execute("SELECT COUNT(*) FROM data")
@@ -39,63 +39,8 @@ class DBHelper:
         data = self.c.fetchone()[0]
         return data
 
-	# Checks if user exists
-    def do_check(self, userid):
-        self.c.execute('SELECT userid FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        data = self.c.fetchone()
-        if data is None:
-            return False
-        elif len(data) > 0:
-            return True
-        else:
-        	# How is this even possible?
-            print("WTF")
+    def get_cursor(self):
+        return self.c
 
-	# Gets user name
-    def getName(self, userid):
-        self.c.execute('SELECT name FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        warn = self.c.fetchone()[0]
-        print(warn)
-        return str(warn)
-
-	# Gets user year
-    def getYear(self, userid):
-        self.c.execute('SELECT year FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        t = self.c.fetchone()
-        if(t != None):
-            return int(t[0])
-        else:
-            return 6
-
-	# Gets user id
-    def getID(self, userid):
-        self.c.execute('SELECT userid FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        return str(self.c.fetchone()[0])
-
-	# Gets username
-    def getUname(self, userid):
-        self.c.execute('SELECT year FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        return str(self.c.fetchone()[0])
-
-	# Gets course
-    def getCourseLetter(self, userid):
-        self.c.execute('SELECT course FROM data WHERE userid=?', (userid,))
-        self.conn.commit()
-        return str(self.c.fetchone()[0])
-
-	# Inserts new user
-    def newUser(self, user):
-        self.c.execute("INSERT INTO data VALUES (?, ?, ?, ?, ?)", (user.userid, user.username, user.user_name, user.year, user.course))
-        self.conn.commit()
-        print("A new user was saved")
-
-	# Updates an user
-    def updateUser(self, what, update, userid):
-        self.c.execute("UPDATE data SET {} =? WHERE userid=?".format(what), (update, userid))
-        self.conn.commit()
-        print("An user has been updated")
+    def get_connection(self):
+        return self.conn

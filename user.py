@@ -20,42 +20,80 @@ from options import *
 class User:
 
 	# builder
-    def __init__(self, userid, username, user_name, year, course):
+    def __init__(self, userid, username, user_name):
         self.userid = userid
         self.username = username
         self.user_name = user_name
-        self.year = year
-        self.course = course
+
+        # database utils
         self.dbh = DBHelper(db_name)
 
 	# Saving new user values
-    def save_user(self):
-        self.dbh.newUser(self)
+    def save(self):
+        self.dbh.get_cursor().execute("INSERT INTO data VALUES (?, ?, ?, ?, ?)", (self.userid, self.username, self.user_name, self.year, self.course))
+        self.dbh.get_connection().commit()
+        print("user {} was saved".format(str(self.userid)))
 
 	# Updating new user values
-    def update_user(self, what, update, uid):
-        self.dbh.updateUser(what, update, uid)
+    def update(self, what, update):
+        self.dbh.get_cursor().execute("UPDATE data SET {} =? WHERE userid=?".format(what), (update, self.userid))
+        self.dbh.get_connection().commit()
+        print("user {} has been updated".format(str(self.userid)))
 
 	# Check if user exists
-    def check(self):
-        return self.dbh.do_check(self.userid)
+    def exists(self):
+        self.dbh.get_cursor().execute('SELECT userid FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        data = self.dbh.get_cursor().fetchone()
+        if data is None:
+            return False
+        elif len(data) > 0:
+            return True
+        else:
+        	return False
 
 	# Get name of the user
-    def getName(self):
-        return self.dbh.getName(self.userid)
+    def get_name(self):
+        self.dbh.get_cursor().execute('SELECT name FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        warn = self.dbh.get_cursor().fetchone()[0]
+        print(warn)
+        return str(warn)
 
 	# Get username of the user
-    def getUname(self):
-        return self.dbh.getUname(self.userid)
+    def get_uname(self):
+        self.dbh.get_cursor().execute('SELECT year FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        return str(self.dbh.get_cursor().fetchone()[0])
 
 	# Get id of the user
-    def getID(self):
-        return self.dbh.getID(self.userid)
+    def get_id(self):
+        self.dbh.get_cursor().execute('SELECT userid FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        return str(self.dbh.get_cursor().fetchone()[0])
 
 	# Get the year of the user
-    def getYear(self):
-        return self.dbh.getYear(self.userid)
+    def get_year(self):
+        self.dbh.get_cursor().execute('SELECT year FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        t = self.dbh.get_cursor().fetchone()
+        if(t != None):
+            return int(t[0])
+        else:
+            return 6
 
 	# Get the course of the user
-    def getCourseLetter(self):
-        return self.dbh.getCourseLetter(self.userid)
+    def get_course(self):
+        self.dbh.get_cursor().execute('SELECT course FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_connection().commit()
+        return str(self.dbh.get_cursor().fetchone()[0])
+
+    def set_year(self, year):
+        self.dbh.get_cursor().execute('UPDATE user SET year={} WHERE userid=?'.format(year), (self.userid))
+        self.dbh.get_connection().commit()
+        # todo: check that update has completed
+
+    def set_course(self, course):
+        self.dbh.get_cursor().execute('UPDATE user SET course={} WHERE userid=?'.format(course), (self.userid))
+        self.dbh.get_connection().commit()
+        # todo: check that update has completed
