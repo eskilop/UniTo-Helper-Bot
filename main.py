@@ -62,21 +62,12 @@ def get_settings(message):
     setup(message)
 
 def setup(message):
-    # start with the year
-    year_kb = types.InlineKeyboardMarkup()
-    y1 = types.InlineKeyboardButton("1", callback_data='year1')
-    y2 = types.InlineKeyboardButton("2", callback_data='year2')
-    y3 = types.InlineKeyboardButton("3", callback_data='year3')
-    y4 = types.InlineKeyboardButton("4", callback_data='year4')
-    y5 = types.InlineKeyboardButton("5", callback_data='year5')
-    year_kb.row(y1, y2, y3)
-    year_kb.row(y4, y5)
-    bot.send_message(message.chat.id, "Di che anno sei?", reply_markup=year_kb)
+    user_info_settings(message)
 
 @bot.callback_query_handler(func=lambda call: call.data)
 def command_click_inline(call):
     tocourse = False;
-    user = User(call.from_user.id, call.from_user.username, call.from_user.first_name)
+    user = User(call=call)
     if(call.data == "A"):
         bot.answer_callback_query(call.id, text="Ora fai parte del corso A")
         user.set_course("A")
@@ -98,7 +89,7 @@ def command_click_inline(call):
         user.set_course("S")
         tocourse=False
     elif (call.data == "DI-STI"):
-        bot.answer_callback_query(call.id, text="Ora fai parte del corso di Sistemi per il Trattamento dell'Icall.from_user.idnformazione")
+        bot.answer_callback_query(call.id, text="Ora fai parte del corso di Sistemi per il Trattamento dell'Informazione")
         user.set_course("DI-STI")
         tocourse=False
     elif (call.data == "DI-RVM"):
@@ -129,32 +120,40 @@ def command_click_inline(call):
         bot.answer_callback_query(call.id, text="Ora fai parte del 5° anno")
         user.set_year(5)
         tocourse = True
+    elif (call.data == "year_back"):
+        user_info_settings(call.message, True)
 
     if(tocourse):
         m = types.InlineKeyboardMarkup()
 
         # based on the previously acquired year, we can show pertinent courses
-        if (u.get_year() == 1 or u.get_year() == 2):
+        if (user.get_year() == 1 or user.get_year() == 2):
             # Just show 'A' and 'B' courses
             abtn = types.InlineKeyboardButton('A', callback_data="A")
             bbtn = types.InlineKeyboardButton('B', callback_data="B")
+            back = types.InlineKeyboardButton('back', callback_data="year_back")
             m.row(abtn, bbtn)
-        elif(u.get_year() == 3):
+            m.row(back)
+        elif(user.get_year() == 3):
             # Just show remaining 3 courses
             ebtn = types.InlineKeyboardButton('Informazione e Conoscenza', callback_data="E")
             nbtn = types.InlineKeyboardButton('Linguaggi e Sistemi', callback_data="N")
             sbtn = types.InlineKeyboardButton('Reti e Sistemi Informatici', callback_data="S")
+            back = types.InlineKeyboardButton('back', callback_data="year_back")
             m.add(ebtn)
             m.add(nbtn)
             m.add(sbtn)
+            m.add(back)
         else:
             # Show masterly courses
             sti = types.InlineKeyboardButton('Sistemi per il trattamento dell\'informazione', callback_data="DI-STI")
             rvm = types.InlineKeyboardButton('Realtà Virtuale e Multimedialità', callback_data="DI-RVM")
             rsi = types.InlineKeyboardButton('Reti e Sistemi Informatici', callback_data="DI-RSI")
+            back = types.InlineKeyboardButton('back', callback_data="year_back")
             m.add(sti)
             m.add(rvm)
             m.add(rsi)
+            m.add(back)
         bot.edit_message_text("Che corso frequenti?", call.message.chat.id, call.message.message_id, reply_markup=m)
     else:
         bot.edit_message_text("Ottimo {}, ora sono al tuo servizio, in caso servisse aiuto, digita /help".format(call.from_user.first_name), call.message.chat.id, call.message.message_id)
@@ -219,7 +218,7 @@ def get_hours(day_of_week, year, user, flag=None):
 
     index = 0;
     if(year <= 2):
-        wpage, headers = urllib.request.urlretrieve(di_first_years.format("L", str(year), str(datetime.datetime.today().year-1))) # pagina del primo/secondo anno
+        wpage, headers = urllib.request.urlretrieve(di_first_years.format("L", str(year), str(datetime.datetime.today().year))) # pagina del primo/secondo anno
         html = open(wpage).read()
         soup = BeautifulSoup(html, "html.parser")
 
@@ -229,11 +228,11 @@ def get_hours(day_of_week, year, user, flag=None):
             index = 0;
 
     elif(year == 3):
-        wpage, headers = urllib.request.urlretrieve(di_third_year.format("L", str(courseLetter), str(datetime.datetime.today().year-1))) # pagina del terzo anno
+        wpage, headers = urllib.request.urlretrieve(di_third_year.format("L", str(courseLetter), str(datetime.datetime.today().year))) # pagina del terzo anno
         html = open(wpage).read()
         soup = BeautifulSoup(html, "html.parser")
     elif(year >= 4):
-        wpage, headers = urllib.request.urlretrieve(di_masterly.format(str(datetime.datetime.today().year-1))) # pagina del quarto/quinto anno
+        wpage, headers = urllib.request.urlretrieve(di_masterly.format(str(datetime.datetime.today().year))) # pagina del quarto/quinto anno
         html = open(wpage, encoding='ISO-8859-1').read()    # utf-8 won't read this
         soup = BeautifulSoup(html, "html.parser")
 
@@ -299,6 +298,34 @@ def get_help(message):
                         "Questo bot è rilasciato sotto una licenza open-source, il che vuol dire che (se ne hai voglia) puoi 'copiarlo' e usarlo sotto i termini della sua licenza: <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">APACHE 2.0</a>" \
                         " che ti invito caldamente a leggere. Questa licenza non ti obbliga a distribuire il tuo prodotto sotto la stessa licenza, ma devi mettere una nota sul Copyright anche nel caso in cui il tuo prodotto sia closed-source." \
                         "", parse_mode="html")
+
+def user_info_settings(message, edit=False):
+    user = User(message=message)
+
+    # start with the year
+    year_kb = types.InlineKeyboardMarkup()
+    y1 = types.InlineKeyboardButton("1", callback_data='year1')
+    y2 = types.InlineKeyboardButton("2", callback_data='year2')
+    y3 = types.InlineKeyboardButton("3", callback_data='year3')
+    y4 = types.InlineKeyboardButton("4", callback_data='year4')
+    y5 = types.InlineKeyboardButton("5", callback_data='year5')
+    back = types.InlineKeyboardButton("Indietro", callback_data='back')
+    year_kb.row(y1, y2, y3)
+    year_kb.row(y4, y5)
+    year_kb.row(back)
+
+    # Build the string
+    infos = "Ciao {},".format(message.chat.first_name) + "\n Fai parte del {}° anno, ".format(user.get_year())
+
+    if (user.get_year() >= 1 or user.get_year() <= 2):
+        infos += "nel corso {}.".format(user.get_course())
+    elif (user.get_year() >= 3):
+        infos += "nel corso di {}.".format(courses[user.get_course])
+
+    if (edit):
+        bot.edit_message_text(infos+"\n\nDi che anno sei?", message.chat.id, message.message_id, reply_markup=year_kb)
+    else:
+        bot.send_message(message.chat.id, infos+"\n\nDi che anno sei?", reply_markup=year_kb)
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):

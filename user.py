@@ -20,23 +20,32 @@ from options import *
 class User:
 
 	# builder
-    def __init__(self, userid, username, user_name):
-        self.userid = userid
-        self.username = username
-        self.user_name = user_name
+    def __init__(self, *args, **kwargs):
+        if(kwargs.get('message') != None):
+            self.userid = kwargs['message'].chat.id
+            self.username = kwargs['message'].chat.username
+            self.user_name = kwargs['message'].chat.first_name
+        elif (kwargs.get('call') != None):
+            self.userid = kwargs['call'].from_user.id
+            self.username = kwargs['call'].from_user.username
+            self.user_name = kwargs['call'].from_user.first_name
+        else:
+            self.userid = args[0]
+            self.username = args[1]
+            self.user_name = args[2]
 
         # database utils
         self.dbh = DBHelper(db_name)
 
 	# Saving new user values
     def save(self):
-        self.dbh.get_cursor().execute("INSERT INTO data VALUES (?, ?, ?, ?, ?)", (self.userid, self.username, self.user_name, self.year, self.course))
+        self.dbh.get_cursor().execute("INSERT INTO data VALUES (?, ?, ?)", (self.userid, self.username, self.user_name))
         self.dbh.get_connection().commit()
         print("user {} was saved".format(str(self.userid)))
 
 	# Updating new user values
     def update(self, what, update):
-        self.dbh.get_cursor().execute("UPDATE data SET {} =? WHERE userid=?".format(what), (update, self.userid))
+        self.dbh.get_cursor().execute("UPDATE data SET {} = ? WHERE userid = ?".format(what), (update, self.userid))
         self.dbh.get_connection().commit()
         print("user {} has been updated".format(str(self.userid)))
 
@@ -89,11 +98,13 @@ class User:
         return str(self.dbh.get_cursor().fetchone()[0])
 
     def set_year(self, year):
-        self.dbh.get_cursor().execute('UPDATE user SET year={} WHERE userid=?'.format(year), (self.userid))
+        self.dbh.get_cursor().execute('UPDATE data SET year={} WHERE userid=?'.format(year), (self.userid,))
         self.dbh.get_connection().commit()
+        print("user {}'s year has been updated".format(str(self.userid)))
         # todo: check that update has completed
 
     def set_course(self, course):
-        self.dbh.get_cursor().execute('UPDATE user SET course={} WHERE userid=?'.format(course), (self.userid))
+        self.dbh.get_cursor().execute('UPDATE data SET course="{}" WHERE userid=?'.format(course), (self.userid,))
         self.dbh.get_connection().commit()
+        print("user {}'s course has been updated".format(str(self.userid)))
         # todo: check that update has completed
