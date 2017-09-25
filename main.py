@@ -162,6 +162,39 @@ def command_click_inline(call):
         setup(call.message, True)
         tocourse = False
 
+    if (call.data == "source_code"):
+        help_kb = types.InlineKeyboardMarkup()
+        help_kb.add(types.InlineKeyboardButton("Indietro", callback_data="source_back"))
+        bot.edit_message_text("<b>Codice sorgente</b>\n" \
+                            "Il codice sorgente di @unitohelperbot è su <a href=\"gitlab.com/eskilop/unitohelperbot\">GitLab</a>\n" \
+                            "<b>Cosa puoi fare:</b>\n" \
+                            "Questo bot è rilasciato sotto una licenza open-source, il che vuol dire che (se ne hai voglia) puoi 'copiarlo' e usarlo sotto i termini della sua licenza: <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">APACHE 2.0</a>" \
+                            " che ti invito caldamente a leggere. Questa licenza non ti obbliga a distribuire il tuo prodotto sotto la stessa licenza, ma devi mettere una nota sul Copyright anche nel caso in cui il tuo prodotto sia closed-source." \
+                            "", call.message.chat.id, call.message.message_id, parse_mode="html", reply_markup=help_kb)
+    elif (call.data == "source_back"):
+        code_kb = types.InlineKeyboardMarkup()
+        code_kb.add(types.InlineKeyboardButton("Codice sorgente", callback_data="source_code"))
+        bot.edit_message_text("<b>Ciao</b>, sono <b> UniTo Helper.</b>\n" \
+                            "Questi sono i comandi che puoi usare:\n" \
+                            "'/help': mostra questo messaggio.\n" \
+                            "'/kins': Inserisce una tastiera interattiva. \n" \
+                            "'/krem': Rimuove la tastiera interattiva. \n" \
+                            "'/bug': Segnala un malfunzionamento allo sviluppatore \n" \
+                            "'/feature': Richiedi una particolare funzionalità (ciò non garantisce la sua effettiva implementazione) \n" \
+                            "'/week': Ti mostro l'orario di questa settimana. <b>[attenzione: spamma]</b> \n" \
+                            "'/yesterday': Ti mostro l'orario di ieri.\n" \
+                            "'/tomorrow': Ti mostro l'orario di domani.\n" \
+                            "'/today': Ti mostro cos'hai per oggi.\n"
+                            "'/setup': Impostazioni"
+                            "\n\n" \
+                            "<b>Informazioni sul mio 'creatore':</b>\n" \
+                            "Il mio creatore si chiama <b>Luca</b>, ed è uno studente proprio come te, ha anche altri progetti in mente" \
+                            " elencati di seguito. Di tanto in tanto mi aggiornerà, Unisciti @eskilopchan, per sapere quando, e qualcosa in più. \n" \
+                            "\n\n" \
+                            "<b>Varie:</b>\n" \
+                            "Unisciti a @eskilopchan se vuoi rimanere aggiornato su questo, e tanti altri progetti del mio padrone :D \n" \
+                            "", call.message.chat.id, call.message.message_id ,parse_mode="HTML", reply_markup=code_kb)
+
 
     if(tocourse):
         m = types.InlineKeyboardMarkup()
@@ -314,6 +347,8 @@ def get_hours(day_of_week, year, user, flag=None):
 
 @bot.message_handler(commands=['help'])
 def get_help(message):
+    code_kb = types.InlineKeyboardMarkup()
+    code_kb.add(types.InlineKeyboardButton("Codice sorgente", callback_data="source_code"))
     bot.send_message(message.chat.id, "<b>Ciao</b>, sono <b> UniTo Helper.</b>\n" \
                         "Questi sono i comandi che puoi usare:\n" \
                         "'/help': mostra questo messaggio.\n" \
@@ -333,13 +368,8 @@ def get_help(message):
                         "\n\n" \
                         "<b>Varie:</b>\n" \
                         "Unisciti a @eskilopchan se vuoi rimanere aggiornato su questo, e tanti altri progetti del mio padrone :D \n" \
-                        "", parse_mode="HTML")
-    bot.reply_to(message, "<b>Codice sorgente</b>\n" \
-                        "Il codice sorgente di @unitohelperbot è su <a href=\"gitlab.com/eskilop/unitohelperbot\">GitLab</a>\n" \
-                        "<b>Cosa puoi fare:</b>\n" \
-                        "Questo bot è rilasciato sotto una licenza open-source, il che vuol dire che (se ne hai voglia) puoi 'copiarlo' e usarlo sotto i termini della sua licenza: <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">APACHE 2.0</a>" \
-                        " che ti invito caldamente a leggere. Questa licenza non ti obbliga a distribuire il tuo prodotto sotto la stessa licenza, ma devi mettere una nota sul Copyright anche nel caso in cui il tuo prodotto sia closed-source." \
-                        "", parse_mode="html")
+                        "", parse_mode="HTML", reply_markup=code_kb)
+
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
