@@ -5,10 +5,10 @@
 
 # 1. General Options
 # ======================================================
-api_token = "312326380:AAGTkplDY-PfV-98E1EiEQanBojpvZ98Sz4" 			# the token you took from t.me/botfather
-log_channel = "-1001103333907"								            # insert an id to send features, bugs or errors
-super_user = "45795068"										       		# for actions that just this user can do
-db_name = "data.db"											            # where to save data
+api_token = "" 			                                    # the token you took from t.me/botfather
+log_channel = ""								            # insert an id to send features, bugs or errors
+super_user = ""										       	# for actions that just this user can do
+db_name = "data.db"											# where to save data
 
 welcome_back = "Bentornato, {}, se vuoi cambiare le tue Informazioni, digita /setup"
 bug_msg = "Descrivi il tuo bug con quanti più dettagli possibili:"
