@@ -25,6 +25,8 @@ then, once you have installes pyTelegramBotAPI on your system you might want to 
 
 * once you created copy the http Api key and paste it into ```api_token``` in ```options.py```
 
+Note that unless you modify the code, you must also insert an id for the ```log_channel```, and an id for ```super_user```
+
 make sure to allow execution of the botstarter.sh by typing:
 
 ```
