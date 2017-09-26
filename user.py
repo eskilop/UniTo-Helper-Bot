@@ -29,6 +29,10 @@ class User:
             self.userid = kwargs['call'].from_user.id
             self.username = kwargs['call'].from_user.username
             self.user_name = kwargs['call'].from_user.first_name
+        elif (kwargs.get('gchat') != None):
+            self.userid = kwargs['gchat'].from_user.id
+            self.username = kwargs['gchat'].from_user.username
+            self.user_name = kwargs['gchat'].from_user.first_name
         else:
             self.userid = args[0]
             self.username = args[1]
@@ -39,7 +43,7 @@ class User:
 
 	# Saving new user values
     def save(self):
-        self.dbh.get_cursor().execute("INSERT INTO data VALUES (?, ?, ?)", (self.userid, self.username, self.user_name))
+        self.dbh.get_cursor().execute("INSERT INTO data VALUES (?, ?, ?, ?, ?)", (self.userid, self.username, self.user_name, 0, "0"))
         self.dbh.get_connection().commit()
         print("user {} was saved".format(str(self.userid)))
 
@@ -63,7 +67,7 @@ class User:
 
 	# Get name of the user
     def get_name(self):
-        self.dbh.get_cursor().execute('SELECT name FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_cursor().execute('SELECT first_name FROM data WHERE userid=?', (self.userid,))
         self.dbh.get_connection().commit()
         warn = self.dbh.get_cursor().fetchone()[0]
         print(warn)
@@ -71,7 +75,7 @@ class User:
 
 	# Get username of the user
     def get_uname(self):
-        self.dbh.get_cursor().execute('SELECT year FROM data WHERE userid=?', (self.userid,))
+        self.dbh.get_cursor().execute('SELECT username FROM data WHERE userid=?', (self.userid,))
         self.dbh.get_connection().commit()
         return str(self.dbh.get_cursor().fetchone()[0])
 

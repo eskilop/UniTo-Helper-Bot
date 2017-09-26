@@ -5,16 +5,15 @@
 
 # 1. General Options
 # ======================================================
-api_token = "312326380:AAGTkplDY-PfV-98E1EiEQanBojpvZ98Sz4" 												# the token you took from t.me/botfather
+api_token = "312326380:AAGTkplDY-PfV-98E1EiEQanBojpvZ98Sz4" 			# the token you took from t.me/botfather
 log_channel = "-1001103333907"								            # insert an id to send features, bugs or errors
-super_user = "45795068"												# for actions that just this user can do
-db_name = "data.db"											# where to save data
+super_user = "45795068"										       		# for actions that just this user can do
+db_name = "data.db"											            # where to save data
 
 welcome_back = "Bentornato, {}, se vuoi cambiare le tue Informazioni, digita /setup"
 bug_msg = "Descrivi il tuo bug con quanti più dettagli possibili:"
 feature_msg = "Descrivi la tua richiesta con quanti più dettagli possibili:"
 general_info = "Ciao, {}, sono UniToHelper, un bot creato apposta per semplificarti piccole azioni quotidiane, ti farò qualche domanda, in modo tale da automatizzare alcune funzioni..."
-
 
 '''
     2. School sites section

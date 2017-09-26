@@ -17,13 +17,17 @@
 '''
 
 import sqlite3
+from options import *
 
 class DBHelper:
 
 	# Builder
-    def __init__(self, dbname):
+    def __init__(self, dbname=db_name):
         self.conn = sqlite3.connect(dbname, check_same_thread = False)
         self.c = self.conn.cursor()
+
+        self.c.execute("CREATE TABLE IF NOT EXISTS 'data'(userid TEXT, username TEXT, first_name TEXT, year INT, course TEXT);")
+        self.conn.commit()
 
     # Inline query the db
     def query(self, query, args):
@@ -44,3 +48,16 @@ class DBHelper:
 
     def get_connection(self):
         return self.conn
+
+    '''
+        Options for what are:
+            - userid
+            - username
+            - first_name
+            - year
+            - course
+    '''
+    def get_all(self, what):
+        self.c.execute("SELECT {} FROM data".format(what))
+        self.conn.commit()
+        return self.c.fetchall()

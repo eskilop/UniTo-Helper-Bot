@@ -32,20 +32,28 @@ bot = telebot.TeleBot(api_token)
 # take the current day and save it +1 (Mon = 1)
 dow = datetime.datetime.today().weekday()+1
 
-@bot.message_handler(func=lambda m: True, content_types=['new_chat_member'])
+@bot.message_handler(func=lambda m: True, content_types=['new_chat_members'])
 def new_member(message):
     bot.reply_to(message, general_info.format(message.new_chat_member.first_name), parse_mode="markdown")
-    setup(message)
 
 @bot.message_handler(commands=['start'])
 def send_inline(message):
-    new_user = User(message.chat.id, message.chat.username, message.chat.first_name)
-    if (new_user.exists()):
-        bot.reply_to(message, welcome_back.format(message.chat.first_name), parse_mode="markdown")
+    if (message.chat.type == "group" or message.chat.type == "supergroup"):
+        groupuser = User(gchat=message)
+        if (groupuser.exists()):
+            bot.reply_to(message, welcome_back.format(groupuser.get_name()), parse_mode="markdown")
+        else:
+            groupuser.save()
+            bot.reply_to(message, general_info.format(groupuser.get_name()))
+            setup(message)
     else:
-        new_user.save()
-        bot.reply_to(message, general_info.format(message.chat.first_name))
-        setup(message)
+        new_user = User(message=message)
+        if (new_user.exists()):
+            bot.reply_to(message, welcome_back.format(message.chat.first_name), parse_mode="markdown")
+        else:
+            new_user.save()
+            bot.reply_to(message, general_info.format(message.chat.first_name))
+            setup(message)
 
 @bot.message_handler(commands=['bug'])
 def send_bug(message):
@@ -64,6 +72,9 @@ def get_settings(message):
 def setup(message, edit=False):
     user = User(message=message)
 
+    if message.chat.type == "group" or message.chat.type == "supergroup":
+        user = User(gchat=message)
+
     # start with the year
     year_kb = types.InlineKeyboardMarkup()
     y1 = types.InlineKeyboardButton("1", callback_data='year1')
@@ -71,18 +82,20 @@ def setup(message, edit=False):
     y3 = types.InlineKeyboardButton("3", callback_data='year3')
     y4 = types.InlineKeyboardButton("4", callback_data='year4')
     y5 = types.InlineKeyboardButton("5", callback_data='year5')
-    back = types.InlineKeyboardButton("Indietro", callback_data='back')
+    back = types.InlineKeyboardButton("← indietro", callback_data='back')
     year_kb.row(y1, y2, y3)
     year_kb.row(y4, y5)
     year_kb.row(back)
 
     # Build the string
-    infos = "Ciao {},".format(message.chat.first_name) + "\n Fai parte del {}° anno, ".format(user.get_year())
+    infos = "Ciao {},".format(user.get_name()) + "\n Fai parte del {}° anno, ".format(user.get_year())
 
     if (user.get_year() == 1 or user.get_year() == 2):
         infos += "nel corso {}.".format(user.get_course())
     elif (user.get_year() >= 3):
         infos += "nel corso di {}.".format(courses[user.get_course()])
+    else:
+        infos = "Non sei ancora registrato, {} rispondi alle domande di seguito..".format(user.get_name())
 
     if (edit):
         bot.edit_message_text(infos+"\n\nDi che anno sei?", message.chat.id, message.message_id, reply_markup=year_kb)
@@ -204,7 +217,7 @@ def command_click_inline(call):
             # Just show 'A' and 'B' courses
             abtn = types.InlineKeyboardButton('A', callback_data="A")
             bbtn = types.InlineKeyboardButton('B', callback_data="B")
-            back = types.InlineKeyboardButton('indietro', callback_data="year_back")
+            back = types.InlineKeyboardButton('← indietro', callback_data="year_back")
             m.row(abtn, bbtn)
             m.row(back)
         elif(user.get_year() == 3):
@@ -212,7 +225,7 @@ def command_click_inline(call):
             ebtn = types.InlineKeyboardButton('Informazione e Conoscenza', callback_data="E")
             nbtn = types.InlineKeyboardButton('Linguaggi e Sistemi', callback_data="N")
             sbtn = types.InlineKeyboardButton('Reti e Sistemi Informatici', callback_data="S")
-            back = types.InlineKeyboardButton('indietro', callback_data="year_back")
+            back = types.InlineKeyboardButton('← indietro', callback_data="year_back")
             m.add(ebtn)
             m.add(nbtn)
             m.add(sbtn)
@@ -222,7 +235,7 @@ def command_click_inline(call):
             sti = types.InlineKeyboardButton('Sistemi per il trattamento dell\'informazione', callback_data="DI-STI")
             rvm = types.InlineKeyboardButton('Realtà Virtuale e Multimedialità', callback_data="DI-RVM")
             rsi = types.InlineKeyboardButton('Reti e Sistemi Informatici', callback_data="DI-RSI")
-            back = types.InlineKeyboardButton('indietro', callback_data="year_back")
+            back = types.InlineKeyboardButton('← indietro', callback_data="year_back")
             m.add(sti)
             m.add(rvm)
             m.add(rsi)
@@ -233,10 +246,13 @@ def command_click_inline(call):
         bot.edit_message_text("Ottimo {}, ora sono al tuo servizio, in caso servisse aiuto, digita /help".format(call.from_user.first_name), call.message.chat.id, call.message.message_id)
         keyboard_insert(call.message)
 
-
 @bot.message_handler(commands=['today'])
 def get_today(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name)
+    u = User(message=message)
+
+    if message.chat.type == "group" or message.chat.type == "supergroup":
+        u = User(gchat=message)
+
     dow = datetime.datetime.today().weekday()+1
     if dow > 5:
         bot.send_message(message.chat.id, "Non mi risulta che tu abbia lezione oggi \U0001F600")
@@ -245,7 +261,11 @@ def get_today(message):
 
 @bot.message_handler(commands=['tomorrow'])
 def get_tomorrow(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name)
+    u = User(message=message)
+
+    if message.chat.type == "group" or message.chat.type == "supergroup":
+        u = User(gchat=message)
+
     dow = datetime.datetime.today().weekday()+1
     if(dow >= 5):
         bot.send_message(message.chat.id, get_hours(1, u.get_year(), u), parse_mode="html")
@@ -254,7 +274,11 @@ def get_tomorrow(message):
 
 @bot.message_handler(commands=['yesterday'])
 def get_yesterday(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name)
+    u = User(message=message)
+
+    if message.chat.type == "group" or message.chat.type == "supergroup":
+        u = User(gchat=message)
+
     dow = datetime.datetime.today().weekday()+1
     if (dow == 1):
         bot.send_message(message.chat.id, get_hours(dow+5-1, u.get_year(), u), parse_mode="html")
@@ -265,7 +289,11 @@ def get_yesterday(message):
 
 @bot.message_handler(commands=['week'])
 def get_week(message):
-    u = User(message.chat.id, message.chat.username, message.chat.first_name)
+    u = User(message=message)
+
+    if message.chat.type == "group" or message.chat.type == "supergroup":
+        u = User(gchat=message)
+
     for i in range(1, 6):
         bot.send_message(message.chat.id, get_hours(i, u.get_year(), u), parse_mode="html")
 
@@ -340,9 +368,20 @@ def get_hours(day_of_week, year, user, flag=None):
             space += "  "
 
         #              hour                        subject
-        message += ora[0].text + space  + materia[day_of_week].text + "\n"
+        message += "\n" + ora[0].text + space  + materia[day_of_week].text + "\n"
 
-    return message
+    return workon(message)
+
+def workon(message):
+    final = message.replace("Laboratorio ", "") \
+                   .replace("Aula ", "")        \
+                   .replace("(", " (")          \
+                   .replace(")", ") ")          \
+                   .replace(") ", ")\n")        \
+                   .replace(")\n\n", ")\n")     \
+                   .replace(" lab", "")
+
+    return final
 
 
 @bot.message_handler(commands=['help'])
@@ -370,36 +409,54 @@ def get_help(message):
                         "Unisciti a @eskilopchan se vuoi rimanere aggiornato su questo, e tanti altri progetti del mio padrone :D \n" \
                         "", parse_mode="HTML", reply_markup=code_kb)
 
+def send_all(mesg):
+    db = DBHelper()
+    for id in list(db.get_all("userid")):
+        bot.send_message(id[0], mesg, parse_mode="html")
+
+def send_changes_all(u):
+    db = DBHelper()
+    change_kb = types.InlineKeyboardMarkup()
+    change_kb.add(types.InlineKeyboardButton("cambiamenti", url=u))
+    for id in list(db.get_all("userid")):
+        bot.send_message(id[0], "Ci sono stati dei cambiamenti al bot", parse_mode="html", reply_markup=change_kb)
+
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
-    if(message.text == "#userdump"):
-        if(str(message.chat.id) == super_user):
-            dbh = DBHelper("data_new.db")
-            bot.send_message(message.chat.id, "<b>"+str(dbh.count())+"</b>", parse_mode="html")
-        else:
-            bot.send_message(message.chat.id, "<b>Non sei autorizzato ad eseguire questo comando.</b>", parse_mode="html")
-    if (message.text == "Oggi"):
-        get_today(message)
-    if (message.text == "Domani"):
-        get_tomorrow(message)
-    if (message.text == "Ieri"):
-        get_yesterday(message)
-    if (message.text == "Orario"):
-    	get_week(message)
-    if (message.text == "Impostazioni"):
-        get_settings(message)
-    if (message.text == "Aiuto"):
-        get_help(message)
+    if(message.text.startswith('#')):
+         if str(message.chat.id) == super_user:
+             if(message.text == "#userdump"):
+                 dbh = DBHelper("data_new.db")
+                 bot.send_message(message.chat.id, "<b>"+str(dbh.count())+"</b>", parse_mode="html")
+             elif(message.text == "#all"):
+                 send_message(message.replace("#all ", ""))
+             elif(message.text == "#change"):
+                 send_changes_all(message.text.replace("#change ", ""))
+         else:
+             bot.send_message(message.chat.id, "<b>Non sei autorizzato ad eseguire questo comando.</b>", parse_mode="html")
+    else:
+        if (message.text == "Oggi"):
+            get_today(message)
+        if (message.text == "Domani"):
+            get_tomorrow(message)
+        if (message.text == "Ieri"):
+            get_yesterday(message)
+        if (message.text == "Orario"):
+        	get_week(message)
+        if (message.text == "Impostazioni"):
+            get_settings(message)
+        if (message.text == "Aiuto"):
+            get_help(message)
 
-    if(message.reply_to_message):
-        if (message.reply_to_message.text == bug_msg):
-            bot.send_message(log_channel, "<b>Tipo: </b>#BUG\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
-            bot.send_message(message.chat.id, "<b>Fatto!</b> Il tuo bug verrà preso in considerazione appena possibile", parse_mode="html")
+        if(message.reply_to_message):
+            if (message.reply_to_message.text == bug_msg):
+                bot.send_message(log_channel, "<b>Tipo: </b>#BUG\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
+                bot.send_message(message.chat.id, "<b>Fatto!</b> Il tuo bug verrà preso in considerazione appena possibile", parse_mode="html")
 
-        if (message.reply_to_message.text == feature_msg):
-            bot.send_message(log_channel, "<b>Tipo: </b>#FEATURE\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
-            bot.send_message(message.chat.id, "<b>Fatto!</b> La tua richiesta verrà presa in considerazione appena possibile", parse_mode="html")
+            if (message.reply_to_message.text == feature_msg):
+                bot.send_message(log_channel, "<b>Tipo: </b>#FEATURE\n"+"<b>Utente:</b> "+str(message.from_user.first_name)+"\n<b>ID: </b>"+str(message.from_user.id)+"\n<b>Username: </b>@"+str(message.from_user.username)+"\n<b>Messaggio: </b>"+message.text, parse_mode="html")
+                bot.send_message(message.chat.id, "<b>Fatto!</b> La tua richiesta verrà presa in considerazione appena possibile", parse_mode="html")
 
 def handler(signum, frame):
     print("Termination code received, terminating...")
