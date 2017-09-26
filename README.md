@@ -9,7 +9,7 @@ First ensure you've installed python 3.x on your system. Then, you have
 * Installation using pip (a Python package manager)*:
 
 ```
-$ pip3 install pyTelegramBotAPI
+$ pip3 install pyTelegramBotAPI bs4
 ```
 
 * Installation from source (requires git):
