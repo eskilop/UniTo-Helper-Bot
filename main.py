@@ -21,7 +21,7 @@ from telebot import types
 import urllib.request
 from bs4 import BeautifulSoup
 from options import *
-import datetime
+from datetime import datetime
 import sys
 from user import User
 from dbhelper import DBHelper
@@ -30,7 +30,7 @@ import signal
 bot = telebot.TeleBot(api_token)
 
 # take the current day and save it +1 (Mon = 1)
-dow = datetime.datetime.today().weekday()+1
+dow = datetime.now().weekday()+1
 
 @bot.message_handler(func=lambda m: True, content_types=['new_chat_members'])
 def new_member(message):
@@ -253,7 +253,7 @@ def get_today(message):
     if message.chat.type == "group" or message.chat.type == "supergroup":
         u = User(gchat=message)
 
-    dow = datetime.datetime.today().weekday()+1
+    dow = datetime.now().weekday()+1
     if dow > 5:
         bot.send_message(message.chat.id, "Non mi risulta che tu abbia lezione oggi \U0001F600")
     else:
@@ -266,7 +266,7 @@ def get_tomorrow(message):
     if message.chat.type == "group" or message.chat.type == "supergroup":
         u = User(gchat=message)
 
-    dow = datetime.datetime.today().weekday()+1
+    dow = datetime.now().weekday()+1
     if(dow >= 5):
         bot.send_message(message.chat.id, get_hours(1, u.get_year(), u), parse_mode="html")
     else:
@@ -279,7 +279,7 @@ def get_yesterday(message):
     if message.chat.type == "group" or message.chat.type == "supergroup":
         u = User(gchat=message)
 
-    dow = datetime.datetime.today().weekday()+1
+    dow = datetime.now().weekday()+1
     if (dow == 1):
         bot.send_message(message.chat.id, get_hours(dow+5-1, u.get_year(), u), parse_mode="html")
     elif(dow == 7):
@@ -319,9 +319,12 @@ def get_hours(day_of_week, year, user, flag=None):
 
     courseLetter = user.get_course()
 
+    # year-1 is needed because it's not updated within the courses
+    # except for the first argument of the first 2 years, don't ask me why
+
     index = 0;
     if(year <= 2):
-        wpage, headers = urllib.request.urlretrieve(di_first_years.format("L", str(year), str(datetime.datetime.today().year))) # pagina del primo/secondo anno
+        wpage, headers = urllib.request.urlretrieve(di_first_years.format("L", str(year), str(datetime.now().year-1), get_semester())) # pagina del primo/secondo anno
         html = open(wpage).read()
         soup = BeautifulSoup(html, "html.parser")
 
@@ -331,11 +334,11 @@ def get_hours(day_of_week, year, user, flag=None):
             index = 0;
 
     elif(year == 3):
-        wpage, headers = urllib.request.urlretrieve(di_third_year.format("L", str(courseLetter), str(datetime.datetime.today().year))) # pagina del terzo anno
+        wpage, headers = urllib.request.urlretrieve(di_third_year.format("L", str(courseLetter), str(datetime.now().year-1), get_semester())) # pagina del terzo anno
         html = open(wpage).read()
         soup = BeautifulSoup(html, "html.parser")
     elif(year >= 4):
-        wpage, headers = urllib.request.urlretrieve(di_masterly.format(str(datetime.datetime.today().year))) # pagina del quarto/quinto anno
+        wpage, headers = urllib.request.urlretrieve(di_masterly.format(str(datetime.now().year-1), get_semester())) # pagina del quarto/quinto anno
         html = open(wpage, encoding='ISO-8859-1').read()    # utf-8 won't read this
         soup = BeautifulSoup(html, "html.parser")
 
@@ -421,6 +424,14 @@ def send_changes_all(u):
     for id in list(db.get_all("userid")):
         bot.send_message(id[0], "Ci sono stati dei cambiamenti al bot", parse_mode="html", reply_markup=change_kb)
 
+def get_semester():
+    refmonth = datetime.now().month
+    if refmonth >= 2 and refmonth <= 9:
+        print("semester 2")
+        return "2"
+    elif refmonth >= 9 or refmonth == 1:
+        print("semester 1")
+        return "1"
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
