@@ -1,6 +1,6 @@
 ### UniToHelperBot for Telegram
 
-![Image](http://www.eskilop.it/art/unitohelperbot/scrot/screenshot-1.jpg)
+<img src="https://raw.githubusercontent.com/eskilop/UniTo-Helper-Bot/master/logo.png" width="25%"/>
 
 ## Building
 First ensure you've installed python 3.x on your system. Then, you have 
