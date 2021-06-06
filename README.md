@@ -1,7 +1,5 @@
 ### UniToHelperBot for Telegram
 
-<img src="https://raw.githubusercontent.com/eskilop/UniTo-Helper-Bot/master/logo.png" width="25%"/>
-
 ## Building
 First ensure you've installed python 3.x on your system. Then, you have 
 2 options to install PyTelegramBotAPI:
